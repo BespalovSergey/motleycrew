@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple, Optional
+from time import sleep
 
 from motleycrew.common.utils import ensure_module_is_installed
 
@@ -52,15 +53,22 @@ class HTMLRenderer:
         Returns:
             file path to created image
         """
+
+        html = self.prepare_html(html)
         logger.info("Trying to render image from HTML code")
         html_path, image_path = self.build_save_file_paths(file_name)
+
+        with open(html_path, "w") as f:
+            f.write(html)
+        logger.info("Saved the HTML code to {}".format(html_path))
+
         browser = webdriver.Chrome(options=self.options, service=self.service)
         try:
             if self.window_size:
                 logger.info("Setting window size to {}".format(self.window_size))
                 browser.set_window_size(*self.window_size)
 
-            url = "data:text/html;charset=utf-8,{}".format(html)
+            url = "file://{}".format(html_path)
             browser.get(url)
 
             logger.info("Taking screenshot")
@@ -73,9 +81,9 @@ class HTMLRenderer:
             logger.error("Failed to render image from HTML code {}".format(image_path))
             return "Failed to render image from HTML code"
 
-        with open(html_path, "w") as f:
-            f.write(html)
-        logger.info("Saved the HTML code to {}".format(html_path))
+        # with open(html_path, "w") as f:
+        #     f.write(html)
+
         logger.info("Saved the rendered HTML screenshot to {}".format(image_path))
 
         return image_path
@@ -100,6 +108,28 @@ class HTMLRenderer:
         image_path = self.images_dir / "{}.png".format(file_name)
 
         return str(html_path), str(image_path)
+
+    def prepare_html(self, html: str) -> str:
+        """Clears the html code from unnecessary characters at the beginning and end of the code
+
+        Args:
+            html (str): html code
+
+        Returns:
+            html (str): html code
+        """
+        if not html:
+            return html
+
+        # clear start and end html
+        open_tag_idx = html.find("<")
+        if open_tag_idx > 0:
+            html = html[open_tag_idx:]
+
+        close_tag_idx = html.rfind(">")
+        if open_tag_idx > -1:
+            html = html[:close_tag_idx + 1]
+        return html
 
 
 class HTMLRenderTool(MotleyTool):
@@ -133,7 +163,7 @@ class HTMLRenderToolInput(BaseModel):
         html (str):
     """
 
-    html: str = Field(description="HTML code for rendering")
+    html: str = Field(description="HTML code for rendering to image")
 
 
 def create_render_tool(renderer: HTMLRenderer):
@@ -145,6 +175,6 @@ def create_render_tool(renderer: HTMLRenderer):
     return Tool.from_function(
         func=renderer.render_image,
         name="HTML rendering tool",
-        description="A tool for rendering HTML code as an image",
+        description="A tool for rendering HTML code to image",
         args_schema=HTMLRenderToolInput,
     )

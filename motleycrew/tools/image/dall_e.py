@@ -35,7 +35,8 @@ def download_image(url: str, file_path: str) -> Optional[str]:
     response = requests.get(url, stream=True)
     if response.status_code == requests.codes.ok:
         content_type = response.headers.get("content-type")
-        extension = mimetypes.guess_extension(content_type)
+        # extension = mimetypes.guess_extension(content_type)
+        extension = None
         if not extension:
             extension = ".png"  # default to .png if content-type is not recognized
 
@@ -162,7 +163,8 @@ def run_dalle_and_save_images(
             file_path_with_extension = download_image(url=url, file_path=file_path).replace(
                 os.sep, "/"
             )
-            file_paths.append(file_path_with_extension)
+            # file_paths.append(file_path_with_extension)
+            file_paths.append(os.path.abspath(file_path_with_extension))
         return file_paths
     else:
         logger.info("Images directory is not provided, returning URLs")
