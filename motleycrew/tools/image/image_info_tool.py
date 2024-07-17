@@ -36,6 +36,8 @@ class BannerImageParser:
         img_slice, location = self.get_slogan_location(img)
         str_slogan_location = "SLOGAN LOCATION: {}".format(location)
         image_info.append(str_slogan_location)
+        str_slogan_mask = "Edited area y1: {}\nEdited area y2: {}".format(img_slice[0], img_slice[1])
+        image_info.append(str_slogan_mask)
 
         # find main color
         color = self.get_color(img[img_slice[0]: img_slice[1], ...])

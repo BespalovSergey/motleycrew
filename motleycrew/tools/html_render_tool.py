@@ -58,7 +58,7 @@ class HTMLRenderer:
         logger.info("Trying to render image from HTML code")
         html_path, image_path = self.build_save_file_paths(file_name)
 
-        with open(html_path, "w") as f:
+        with open(html_path, "w", encoding="utf-8") as f:
             f.write(html)
         logger.info("Saved the HTML code to {}".format(html_path))
 
